@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+	<External>null</External>
+	<External>nil</External>
+	<Item class="UserGameSettings" referent="RBX17633EFA9BBD402199582E10A8C7E8F2">
+		<Properties>
+			<int name="FramerateCap">60</int>
+			<token name="SavedQualityLevel">2</token>
+			<float name="MouseSensitivity">1</float>
+			<bool name="VREnabled">false</bool>
+			<float name="PreferredTransparency">1</float>
+			<bool name="ReducedMotion">false</bool>
+			<token name="PreferredTextSize">1</token>
+		</Properties>
+	</Item>
+</roblox>

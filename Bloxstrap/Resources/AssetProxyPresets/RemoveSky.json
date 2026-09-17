@@ -1,0 +1,47 @@
+{
+  "replacement_rules": [
+    {
+      "type": "group",
+      "name": "Remove Sky",
+      "expanded": true,
+      "children": [
+        {
+          "name": "SkyboxBk",
+          "replace_ids": [2108482005, 14147881792, 135908632589654, 84214501374682, 10196550937, 12261809766],
+          "mode": "remove",
+          "enabled": true
+        },
+        {
+          "name": "SkyboxDn",
+          "replace_ids": [2108545280, 10196550667, 14147882149, 103020541883227, 89972436184102, 12261813110],
+          "mode": "remove",
+          "enabled": true
+        },
+        {
+          "name": "SkyboxFt",
+          "replace_ids": [14147882761, 12261809766, 135908632589654, 84214501374682, 10196550367, 2108482231],
+          "mode": "remove",
+          "enabled": true
+        },
+        {
+          "name": "SkyboxLf",
+          "replace_ids": [14147883091, 135908632589654, 84214501374682, 2108482395, 12261809766, 10196550128],
+          "mode": "remove",
+          "enabled": true
+        },
+        {
+          "name": "SkyboxRt",
+          "replace_ids": [14147882405, 135908632589654, 84214501374682, 2108482542, 12261809766, 10196549902],
+          "mode": "remove",
+          "enabled": true
+        },
+        {
+          "name": "SkyboxUp",
+          "replace_ids": [14147881297, 72960281658487, 92138082970751, 2108482676, 10196567794, 12261813678],
+          "mode": "remove",
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

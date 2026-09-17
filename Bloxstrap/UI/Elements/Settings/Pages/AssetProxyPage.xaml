@@ -1,0 +1,199 @@
+<ui:UiPage x:Class="Bloxstrap.UI.Elements.Settings.Pages.AssetProxyPage"
+      x:Name="AssetProxyPageView"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:Bloxstrap.UI.Elements.Controls"
+      xmlns:resources="clr-namespace:Bloxstrap.Resources"
+      mc:Ignorable="d"
+      d:DesignHeight="1080" d:DesignWidth="800"
+      Title="AssetProxyPage"
+      Scrollable="True">
+    <StackPanel Margin="0,0,14,14">
+        <TextBlock Text="{x:Static resources:Strings.Menu_AssetProxy_Description}" TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+        <controls:OptionControl
+            Header="{x:Static resources:Strings.Menu_AssetProxy_Enable_Title}"
+            Description="{x:Static resources:Strings.Menu_AssetProxy_Enable_Description}">
+            <ui:ToggleSwitch IsChecked="{Binding EnableAssetProxy, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <TextBlock Text="{Binding HostsStateText}" TextWrapping="Wrap" FontSize="14"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,4,0,0" />
+
+        <ui:Button Margin="0,6,0,0" HorizontalAlignment="Left" Content="Remove leftover redirections"
+                   Icon="Wrench24" Command="{Binding RepairHostsCommand, Mode=OneTime}"
+                   Visibility="{Binding RepairVisibility, Mode=OneWay}"
+                   ToolTip="Needs administrator rights, so Windows will ask for approval." />
+
+        <controls:OptionControl
+            Header="{x:Static resources:Strings.Menu_AssetProxy_Cache_Title}"
+            Description="{x:Static resources:Strings.Menu_AssetProxy_Cache_Description}"
+            IsEnabled="{Binding EnableAssetProxy, Mode=OneWay}">
+            <ui:ToggleSwitch IsChecked="{Binding CacheOriginalAssets, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Refresh swapped assets"
+            Description="Roblox keeps its own copy of every asset, so it can answer from cache and never ask the proxy again. Clearing that cache is what makes a swap show up."
+            IsEnabled="{Binding EnableAssetProxy, Mode=OneWay}">
+            <ComboBox MinWidth="280"
+                      ItemsSource="{Binding CacheRefreshOptions, Mode=OneTime}"
+                      SelectedItem="{Binding SelectedCacheRefresh, Mode=TwoWay}"
+                      ToolTip="When the client's cached assets are dropped before a launch." />
+        </controls:OptionControl>
+
+        <TextBlock Text="{x:Static resources:Strings.Menu_AssetProxy_Status_Title}" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+        <Grid Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="{Binding StatusText}" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="{Binding RequestCountText}" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="{Binding ErrorCountText}" FontSize="14" TextWrapping="Wrap"
+                           Foreground="{DynamicResource SystemFillColorCautionBrush}" />
+                <TextBlock Text="{Binding CacheCountText}" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="{Binding ConfigCountText}" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <ui:Button Margin="0,0,4,0" Content="{x:Static resources:Strings.Menu_AssetProxy_Start}" Icon="Play24" Command="{Binding StartProxyCommand, Mode=OneTime}" />
+                <ui:Button Margin="4,0,4,0" Content="{x:Static resources:Strings.Menu_AssetProxy_Stop}" Icon="Stop24" Command="{Binding StopProxyCommand, Mode=OneTime}" />
+                <ui:Button Margin="4,0,0,0" Content="{x:Static resources:Strings.Menu_AssetProxy_OpenCache}" Icon="Folder24" Command="{Binding OpenCacheCommand, Mode=OneTime}" />
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Text="Configs" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="A config is a shareable set of asset rules. Import one exported from Catstrap or Fleasion, or start from a bundled preset." />
+
+        <Grid Margin="0,8,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ListBox x:Name="ConfigsListBox" Grid.Row="0" Grid.Column="0" Margin="0,0,4,0" MinHeight="120"
+                     ItemsSource="{Binding Configs, Mode=OneWay}"
+                     SelectedItem="{Binding SelectedConfig, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,2,0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <CheckBox Grid.Column="0" VerticalAlignment="Center" Margin="0,0,8,0"
+                                      IsChecked="{Binding Enabled, Mode=TwoWay}"
+                                      ToolTip="Enable or disable this config" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding DisplayName}" FontSize="14" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding Summary}" FontSize="12" Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Grid Grid.Row="1" Grid.Column="0" Margin="0,8,4,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ui:Button Grid.Column="0" Margin="0,0,4,0" Icon="Add28" Content="New" HorizontalAlignment="Stretch" Command="{Binding NewConfigCommand, Mode=OneTime}" />
+                <ui:Button Grid.Column="1" Margin="4,0,0,0" Icon="Delete28" Content="Remove" Appearance="Danger" HorizontalAlignment="Stretch" Command="{Binding DeleteConfigCommand, Mode=OneTime}" />
+            </Grid>
+
+            <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="4,0,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button Margin="0,0,4,0" Icon="ArrowImport24" Content="Import" Appearance="Primary" Command="{Binding ImportConfigCommand, Mode=OneTime}" />
+                    <ui:Button Margin="4,0,4,0" Icon="ArrowExportUp24" Content="Export" Command="{Binding ExportConfigCommand, Mode=OneTime}" />
+                    <ui:Button Margin="4,0,0,0" Icon="Folder24" Content="Open folder" Command="{Binding OpenConfigFolderCommand, Mode=OneTime}" />
+                </StackPanel>
+
+                <TextBlock Text="Presets" FontSize="14" FontWeight="Medium" Margin="0,12,0,0" />
+                <Grid Margin="0,4,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="PresetBox" Grid.Column="0" Margin="0,0,4,0" Padding="10,5,10,5"
+                              ItemsSource="{Binding Presets, Mode=OneTime}" />
+                    <ui:Button Grid.Column="1" Icon="Add24" Content="Add preset" Command="{Binding ApplyPresetCommand, Mode=OneTime}"
+                               CommandParameter="{Binding SelectedItem, ElementName=PresetBox}" />
+                </Grid>
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Text="{x:Static resources:Strings.Menu_AssetProxy_Rules_Title}" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+        <TextBlock Text="{x:Static resources:Strings.Menu_AssetProxy_Rules_Description}" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Grid Margin="0,8,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ListBox x:Name="RulesListBox" Grid.Row="0" Grid.Column="0" Margin="0,0,4,0" MinHeight="160"
+                     ItemsSource="{Binding Rules, Mode=OneWay}"
+                     SelectedItem="{Binding SelectedRule, Mode=TwoWay}"
+                     DisplayMemberPath="DisplayName" />
+            <Grid Grid.Row="1" Grid.Column="0" Margin="0,8,4,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ui:Button Grid.Column="0" Margin="0,0,4,0" Icon="Add28" Content="{x:Static resources:Strings.Common_New}" HorizontalAlignment="Stretch" Command="{Binding AddRuleCommand, Mode=OneTime}" />
+                <ui:Button Grid.Column="1" Margin="4,0,0,0" Icon="Delete28" Content="{x:Static resources:Strings.Common_Delete}" HorizontalAlignment="Stretch" Appearance="Danger" Command="{Binding DeleteRuleCommand, Mode=OneTime}" />
+            </Grid>
+            <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Margin="4,0,0,0">
+                <StackPanel.Style>
+                    <Style>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsRuleSelected}" Value="False">
+                                <Setter Property="StackPanel.Visibility" Value="Hidden"></Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Text="{x:Static resources:Strings.Menu_AssetProxy_Rule_Name}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <ui:TextBox Margin="0,4,0,0" Text="{Binding SelectedRule.Name, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Margin="0,8,0,0" Text="{x:Static resources:Strings.Menu_AssetProxy_Rule_FromId}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <ui:TextBox Margin="0,4,0,0" PlaceholderText="123456789" Text="{Binding SelectedRuleFromAssetId, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Margin="0,8,0,0" Text="{x:Static resources:Strings.Menu_AssetProxy_Rule_Action}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <ComboBox Width="200" HorizontalAlignment="Left" Margin="0,4,0,0" Padding="10,5,10,5" ItemsSource="{Binding Actions, Mode=OneTime}" SelectedItem="{Binding SelectedRule.Action, Mode=TwoWay}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Path=., Converter={StaticResource EnumNameConverter}}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Margin="0,8,0,0" Text="{x:Static resources:Strings.Menu_AssetProxy_Rule_ToId}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <ui:TextBox Margin="0,4,0,0" PlaceholderText="987654321" Text="{Binding SelectedRule.ToAssetId, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Margin="0,8,0,0" Text="{x:Static resources:Strings.Menu_AssetProxy_Rule_Target}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <ui:TextBox Margin="0,4,0,0" PlaceholderText="https://... or C:\path\to\file.png" Text="{Binding SelectedRule.RedirectTarget, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Margin="0,8,0,0" Content="{x:Static resources:Strings.Menu_AssetProxy_Rule_Enabled}" IsChecked="{Binding SelectedRuleEnabled, Mode=TwoWay}" />
+            </StackPanel>
+            <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Text="{x:Static resources:Strings.Menu_AssetProxy_NoRuleSelected}" TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsRuleSelected}" Value="True">
+                                <Setter Property="TextBlock.Visibility" Value="Hidden"></Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </Grid>
+    </StackPanel>
+</ui:UiPage>

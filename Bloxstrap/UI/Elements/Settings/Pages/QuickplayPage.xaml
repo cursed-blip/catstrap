@@ -1,0 +1,255 @@
+<ui:UiPage x:Class="Bloxstrap.UI.Elements.Settings.Pages.QuickplayPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:Bloxstrap.UI.Elements.Controls"
+      mc:Ignorable="d"
+      d:DesignHeight="900" d:DesignWidth="800"
+      Title="QuickplayPage"
+      Scrollable="True">
+
+    <StackPanel Margin="0,0,14,14">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <TextBlock Text="{Binding GameCountText}" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasGames}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Text="{Binding StatusMessage}" FontSize="14" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextFillColorTertiaryBrush}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasStatusMessage}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+            <ui:Button Grid.Column="1" Icon="ArrowSync24" Content="Refresh"
+                       ToolTip="Re-fetch names, icons and player counts from Roblox"
+                       Command="{Binding RefreshCommand, Mode=OneTime}" />
+        </Grid>
+
+        <ItemsControl Margin="0,12,0,0" ItemsSource="{Binding VisibleGames, Mode=OneWay}">
+            <ItemsControl.Style>
+                <Style TargetType="ItemsControl">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasGames}" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ItemsControl.Style>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Width="196" Margin="0,0,8,8" Padding="8" CornerRadius="6"
+                            Background="{DynamicResource ControlFillColorDefaultBrush}"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            ToolTip="{Binding LastPlayedText}">
+                        <StackPanel>
+                            <Grid Height="148">
+                                <Image Source="{Binding Icon, Mode=OneWay}" Stretch="Uniform" StretchDirection="DownOnly"
+                                       RenderOptions.BitmapScalingMode="LowQuality">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasIcon}" Value="False">
+                                                    <Setter Property="Visibility" Value="Hidden" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+                                <TextBlock Text="Loading icon..." FontSize="12" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasIcon}" Value="True">
+                                                    <Setter Property="Visibility" Value="Hidden" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+
+                            <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="Medium"
+                                       TextTrimming="CharacterEllipsis" MinHeight="18"
+                                       ToolTip="{Binding DisplayName}" />
+
+                            <Grid Margin="0,4,0,0" MinHeight="38">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding PlayingText}" FontSize="12" TextTrimming="CharacterEllipsis">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasPlayingCount}" Value="False">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding RegionSummary}" FontSize="10" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                               ToolTip="Where this game's servers are, sampled on demand">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasRegionSummary}" Value="False">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <Grid Grid.Column="1" Width="38" Height="38" Margin="6,0,0,0"
+                                      ToolTip="{Binding PlaytimeText}">
+                                    <Grid.Style>
+                                        <Style TargetType="Grid">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding HasPlaytime}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Grid.Style>
+                                    <ui:ProgressRing Value="{Binding PlaytimeRingValue, Mode=OneWay}"
+                                                     Width="38" Height="38" />
+                                    <TextBlock Text="{Binding PlaytimeShortText}" FontSize="9" FontWeight="Medium"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Grid>
+                            </Grid>
+
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ui:Button Grid.Column="0" Margin="0,0,4,0" Icon="Play24" Content="Play"
+                                           HorizontalAlignment="Stretch"
+                                           Command="{Binding DataContext.PlayGameCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                           CommandParameter="{Binding}" />
+                                <ui:Button Grid.Column="1" Margin="0,0,4,0" Width="30" Padding="0"
+                                           Content="{Binding FavoriteGlyph}" FontSize="15"
+                                           ToolTip="Favourite"
+                                           AutomationProperties.Name="Favourite"
+                                           Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                           CommandParameter="{Binding}" />
+                                <ui:Button Grid.Column="2" Margin="0,0,4,0" Width="30" Padding="0" Icon="Globe24"
+                                           ToolTip="Check which countries this game's servers are in"
+                                           AutomationProperties.Name="Check server regions"
+                                           Command="{Binding DataContext.FetchRegionsCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                           CommandParameter="{Binding}">
+                                    <ui:Button.Style>
+                                        <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataContext.ShowServerRegions, RelativeSource={RelativeSource AncestorType=ItemsControl}}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ui:Button.Style>
+                                </ui:Button>
+                                <ui:Button Grid.Column="3" Width="30" Padding="0" Icon="Delete24" Appearance="Danger"
+                                           ToolTip="Remove from Quickplay"
+                                           AutomationProperties.Name="Remove from Quickplay"
+                                           Command="{Binding DataContext.RemoveGameCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                           CommandParameter="{Binding}" />
+                            </Grid>
+
+                            <ui:Button Margin="0,4,0,0" Icon="Desktop24" Content="Desktop shortcut"
+                                       HorizontalAlignment="Stretch" FontSize="12"
+                                       ToolTip="Puts a shortcut on your desktop that launches this game through Catstrap"
+                                       Command="{Binding DataContext.CreateShortcutCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                       CommandParameter="{Binding}" />
+                        </StackPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" FontSize="14" MaxWidth="480" HorizontalAlignment="Left"
+                   Foreground="{DynamicResource TextFillColorTertiaryBrush}">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasGames}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+            <Run Text="Nothing here yet. Add a game below, or join one and it will show up on its own." />
+        </TextBlock>
+
+        <TextBlock Margin="0,20,0,0" Text="Quickplay settings" FontSize="16" FontWeight="Medium" />
+
+        <controls:OptionControl
+            Header="Add a game"
+            Description="Paste a roblox.com game link or just the place id.">
+            <Grid Width="420" HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox Grid.Column="0" Margin="0,0,4,0" PlaceholderText="https://www.roblox.com/games/2753915549/Blox-Fruits"
+                            Text="{Binding NewGameText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            KeyDown="AddGameBox_KeyDown" />
+                <ui:Button Grid.Column="1" Icon="Add24" Content="Add" Appearance="Primary"
+                           Command="{Binding AddGameCommand, Mode=OneTime}" />
+            </Grid>
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Add games as I play them"
+            Description="Keeps the most recent 50 games you join. Off means the page only shows what you pinned yourself.">
+            <ui:ToggleSwitch IsChecked="{Binding TrackRecentlyPlayedGames, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Show live player counts"
+            Description="Puts how many people are in each game right now on its tile. One batched request to Roblox, refreshed when you open this page.">
+            <ui:ToggleSwitch IsChecked="{Binding ShowLivePlayerCounts, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Check where servers are"
+            Description="Adds a globe button to each tile. Clicking it asks RoValra's free API which countries that game has servers in - nothing is sent about you, and it never runs on its own.">
+            <ui:ToggleSwitch IsChecked="{Binding ShowServerRegions, Mode=TwoWay}" />
+        </controls:OptionControl>
+    </StackPanel>
+</ui:UiPage>

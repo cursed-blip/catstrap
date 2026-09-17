@@ -1,0 +1,157 @@
+<ui:UiPage x:Class="Bloxstrap.UI.Elements.Settings.Pages.ConfigPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:controls="clr-namespace:Bloxstrap.UI.Elements.Controls"
+      mc:Ignorable="d"
+      d:DesignHeight="900" d:DesignWidth="800"
+      Title="ConfigPage"
+      Scrollable="True">
+
+    <StackPanel Margin="0,0,14,14">
+        <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="Save and share your whole Catstrap setup. A .cfg file holds your settings, fast flags and asset configs, so someone else can load it and get your exact setup. Your Roblox logins are never part of it - saved accounts live in their own file and are never exported." />
+
+        <TextBlock Text="Appearance" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+
+        <controls:OptionControl
+            Header="Accent colour"
+            Description="Used for highlights, toggles and buttons across Catstrap. Pick anything you like - the colour follows your drag.">
+            <controls:ColourPicker SelectedColor="{Binding AccentPrimaryColor, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Accounts"
+            Description="Remembers the account you're signed into as you play, so switching to it later is one click. Needs account access, and stores nothing but the cookie, encrypted with Windows.">
+            <ui:ToggleSwitch IsChecked="{Binding AutoSaveAccounts, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Background GIF"
+            Description="Paste a direct link to a .gif and Catstrap keeps a copy on disk and animates it behind the window. Empty means the normal background.">
+            <StackPanel Width="460">
+                <StackPanel Orientation="Horizontal">
+                    <ui:TextBox Width="300" PlaceholderText="https://example.com/background.gif"
+                                Text="{Binding BackgroundGifUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:Button Margin="6,0,0,0" Icon="ArrowDownload24" Content="Apply"
+                               Command="{Binding ApplyBackgroundCommand, Mode=OneTime}" />
+                    <ui:Button Margin="6,0,0,0" Icon="Delete24" Content="Clear"
+                               Command="{Binding ClearBackgroundCommand, Mode=OneTime}" />
+                </StackPanel>
+                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" FontSize="12"
+                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                           Text="{Binding BackgroundStatus}" />
+            </StackPanel>
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Background strength"
+            Description="How much of the GIF shows through. Keep it low - text sits on top of it.">
+            <StackPanel Orientation="Horizontal">
+                <Slider Width="260" Minimum="0.05" Maximum="0.8" TickFrequency="0.05"
+                        IsSnapToTickEnabled="True" VerticalAlignment="Center"
+                        Value="{Binding BackgroundGifOpacity, Mode=TwoWay}" />
+                <TextBlock Margin="10,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="{Binding BackgroundGifOpacity, StringFormat={}{0:P0}}" />
+            </StackPanel>
+        </controls:OptionControl>
+
+        <TextBlock Text="Basics" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+
+        <controls:OptionControl
+            Header="Developer mode"
+            Description="Shows extra diagnostics and experimental options.">
+            <ui:ToggleSwitch IsChecked="{Binding DeveloperMode, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Render the settings window in software"
+            Description="Turn this on if the settings window flickers or struggles on your GPU.">
+            <ui:ToggleSwitch IsChecked="{Binding WPFSoftwareRender, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <TextBlock Text="Performance" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="Catstrap only builds a settings page when you open it, keeps its caches on a leash and never polls in the background - these are the dials on top of that." />
+
+        <controls:OptionControl
+            Header="Game icons loaded at once"
+            Description="Quickplay fetches icons in the background when the page opens. Dropping this makes the page appear faster on a slow disk or connection.">
+            <ComboBox Width="220" Padding="10,5,10,5" ItemsSource="{Binding IconPrefetchOptions.Keys, Mode=OneTime}"
+                      Text="{Binding SelectedIconPrefetch, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Game icon cache limit"
+            Description="Cached icons are trimmed oldest-first once they pass this size. Icons are cheap to fetch again.">
+            <ComboBox Width="220" Padding="10,5,10,5" ItemsSource="{Binding IconCacheOptions.Keys, Mode=OneTime}"
+                      Text="{Binding SelectedIconCacheLimit, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Reduce visual effects"
+            Description="Turns off the window backdrop and other decoration. Helps on old integrated graphics and over remote desktop.">
+            <ui:ToggleSwitch IsChecked="{Binding ReduceVisualEffects, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <TextBlock Text="Privacy" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="Catstrap itself has no analytics, no crash reporting and no accounts - these control what Roblox and the launcher are allowed to do on your behalf." />
+
+        <controls:OptionControl
+            Header="Block Roblox telemetry"
+            Description="Sets Roblox's telemetry fast flags so it stops sending usage data and analytics. On by default. Individual flags stay visible under Fast Flags.">
+            <ui:ToggleSwitch IsChecked="{Binding BlockRobloxTelemetry, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Don't contact Catstrap's servers"
+            Description="Uses the copy of the launcher data bundled with the app instead of downloading it on launch. Turn this off if you want in-app notices from the Catstrap team.">
+            <ui:ToggleSwitch IsChecked="{Binding OfflineMode, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <controls:OptionControl
+            Header="Check for Catstrap updates"
+            Description="Asks GitHub whether a newer Catstrap build exists when Roblox launches. No identifying information is sent.">
+            <ui:ToggleSwitch IsChecked="{Binding CheckForUpdates, Mode=TwoWay}" />
+        </controls:OptionControl>
+
+        <TextBlock Text="Saved configs" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="Saved as .cfg files in the folder below. Use Export to share one, or drop a .cfg in the folder and hit Refresh." />
+
+        <Grid Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ListBox Grid.Column="0" Margin="0,0,4,0" MinHeight="140"
+                     ItemsSource="{Binding SavedConfigs, Mode=OneWay}"
+                     SelectedItem="{Binding SelectedConfig, Mode=TwoWay}" />
+
+            <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                <ui:Button HorizontalAlignment="Stretch" Margin="0,0,0,4" Icon="Save24" Appearance="Primary"
+                           Content="Save current setup..." Command="{Binding SaveCurrentCommand, Mode=OneTime}" />
+                <ui:Button HorizontalAlignment="Stretch" Margin="0,4,0,4" Icon="ArrowUpload24"
+                           Content="Load selected" Command="{Binding LoadSelectedCommand, Mode=OneTime}" />
+                <ui:Button HorizontalAlignment="Stretch" Margin="0,4,0,4" Icon="ArrowImport24"
+                           Content="Import a .cfg..." Command="{Binding ImportCommand, Mode=OneTime}" />
+                <ui:Button HorizontalAlignment="Stretch" Margin="0,4,0,4" Icon="Delete24" Appearance="Danger"
+                           Content="Delete selected" Command="{Binding DeleteSelectedCommand, Mode=OneTime}" />
+                <ui:Button HorizontalAlignment="Stretch" Margin="0,4,0,0" Icon="Folder24"
+                           Content="Open folder" Command="{Binding OpenFolderCommand, Mode=OneTime}" />
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Text="Catstrap" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
+        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+            <ui:Button Margin="0,0,4,0" Icon="QuestionCircle24" Content="About Catstrap" Command="{Binding OpenAboutCommand, Mode=OneTime}" />
+            <ui:Button Margin="4,0,4,0" Icon="Folder24" Content="Open logs" Command="{Binding OpenLogsCommand, Mode=OneTime}" />
+            <ui:Button Margin="4,0,0,0" Icon="ArrowReset24" Content="Reset settings" Appearance="Danger" Command="{Binding ResetSettingsCommand, Mode=OneTime}" />
+        </StackPanel>
+    </StackPanel>
+</ui:UiPage>

@@ -1,0 +1,89 @@
+<UserControl x:Class="Bloxstrap.UI.Elements.Controls.ColourPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d"
+             d:DesignWidth="420" d:DesignHeight="200">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0">
+            <Border CornerRadius="6" ClipToBounds="True" Background="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    Padding="1" MouseLeftButtonDown="Sv_MouseDown" MouseMove="Sv_MouseMove" MouseLeftButtonUp="Sv_MouseUp"
+                    Cursor="Cross">
+                <Canvas x:Name="SvCanvas" Width="196" Height="150" ClipToBounds="True">
+                    <Rectangle x:Name="SvBase" Width="196" Height="150" />
+                    <Rectangle Width="196" Height="150">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#FFFFFFFF" Offset="0" />
+                                <GradientStop Color="#00FFFFFF" Offset="1" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Rectangle Width="196" Height="150">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#00000000" Offset="0" />
+                                <GradientStop Color="#FF000000" Offset="1" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Ellipse x:Name="SvThumb" Width="13" Height="13" StrokeThickness="2" Stroke="White"
+                             StrokeDashArray="0" Panel.ZIndex="2">
+                        <Ellipse.Effect>
+                            <DropShadowEffect BlurRadius="4" ShadowDepth="0" Opacity="0.9" Color="Black" />
+                        </Ellipse.Effect>
+                    </Ellipse>
+                </Canvas>
+            </Border>
+
+            <Border CornerRadius="8" Height="18" Margin="0,10,0,0" ClipToBounds="True"
+                    Background="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    Padding="1" MouseLeftButtonDown="Hue_MouseDown" MouseMove="Hue_MouseMove" MouseLeftButtonUp="Hue_MouseUp"
+                    Cursor="SizeWE">
+                <Canvas x:Name="HueCanvas" Height="16" ClipToBounds="True">
+                    <Rectangle x:Name="HueBar" Height="16" Width="{Binding ActualWidth, ElementName=HueCanvas}">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#FFFF0000" Offset="0" />
+                                <GradientStop Color="#FFFFFF00" Offset="0.1667" />
+                                <GradientStop Color="#FF00FF00" Offset="0.3333" />
+                                <GradientStop Color="#FF00FFFF" Offset="0.5" />
+                                <GradientStop Color="#FF0000FF" Offset="0.6667" />
+                                <GradientStop Color="#FFFF00FF" Offset="0.8333" />
+                                <GradientStop Color="#FFFF0000" Offset="1" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <Rectangle x:Name="HueThumb" Width="6" Height="16" StrokeThickness="2" Stroke="White" RadiusX="3" RadiusY="3"
+                               Panel.ZIndex="2">
+                        <Rectangle.Effect>
+                            <DropShadowEffect BlurRadius="4" ShadowDepth="0" Opacity="0.9" Color="Black" />
+                        </Rectangle.Effect>
+                    </Rectangle>
+                </Canvas>
+            </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Margin="14,0,0,0">
+            <Border Height="52" CornerRadius="6" BorderThickness="1"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    Background="{Binding SwatchBrush, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}" />
+
+            <TextBlock Text="Hex" Margin="0,10,0,4" FontSize="12"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <ui:TextBox x:Name="HexBox" Width="120" HorizontalAlignment="Left" MaxLength="7"
+                        TextChanged="HexBox_TextChanged" />
+
+            <TextBlock x:Name="RgbText" Margin="0,8,0,0" FontSize="12"
+                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+        </StackPanel>
+    </Grid>
+</UserControl>
