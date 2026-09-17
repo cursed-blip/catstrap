@@ -48,8 +48,8 @@
 
             <Image
                 Grid.Row="0"
-                Width="80"
-                Height="80"
+                Width="92"
+                Height="92"
                 Margin="0,30,0,0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
