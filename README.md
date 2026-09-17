@@ -8,7 +8,6 @@
 <img src="https://github.com/cursed-blip/catstrap/raw/main/Images/Catstrap-Logo.png" width="255" alt="Catstrap">
 
 ![][badge-latest]
-![][badge-downloads]
 ![][badge-license]
 ![][badge-actions]
 ![][badge-stars]
@@ -33,6 +32,8 @@ change between releases. If something breaks, please
 > [!NOTE]
 > Built for **Windows 10 and above**, with the .NET 6 Desktop Runtime. On macOS or
 > Linux, take a look at [AppleBlox][appleblox] and [Sober][sober].
+
+<sub>If Catstrap is useful to you, consider starring the repository.</sub>
 
 ## Features
 
@@ -108,7 +109,6 @@ Presence and Catstrap's own invite handling.
 [repo-new-issue]: https://github.com/cursed-blip/catstrap/issues/new
 
 [badge-latest]: https://img.shields.io/github/v/release/cursed-blip/catstrap?display_name=release&label=release
-[badge-downloads]: https://img.shields.io/github/downloads/cursed-blip/catstrap/total?label=downloads
 [badge-license]: https://img.shields.io/github/license/cursed-blip/catstrap?label=licence
 [badge-actions]: https://img.shields.io/github/actions/workflow/status/cursed-blip/catstrap/ci-release.yml?branch=main&label=build
 [badge-stars]: https://img.shields.io/github/stars/cursed-blip/catstrap?label=stars
