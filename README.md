@@ -22,27 +22,32 @@
 </div>
 
 Catstrap is a custom bootstrapper for Roblox, forked from [Fishstrap][fishstrap],
-which is itself based on [Bloxstrap][bloxstrap]. It adds a set of features the
-upstream projects do not have, including a built-in local asset proxy for
-swapping game assets before they reach the client.
+which is itself based on [Bloxstrap][bloxstrap]. It adds features the upstream
+projects do not have, including a built-in asset proxy that swaps game assets
+before they reach the client.
 
 Catstrap is in **beta**. Expect rough edges, and expect settings and behaviour to
 change between releases. If something breaks, please
-[open an issue][repo-new-issue] rather than assuming it is intentional.
+[open an issue][repo-new-issue].
 
 > [!NOTE]
-> Catstrap is built for **Windows 10 and above**. On macOS or Linux, take a look
-> at [AppleBlox][appleblox] and [Sober][sober] respectively.
+> Built for **Windows 10 and above**, with the .NET 6 Desktop Runtime. On macOS or
+> Linux, take a look at [AppleBlox][appleblox] and [Sober][sober].
 
 ## Features
 
+<details>
+<summary><b>Click to expand the full feature list</b></summary>
+
+<br>
+
 **Asset Proxy**
 
-A local proxy that sits between Roblox and its servers and swaps textures, audio,
-meshes and animations before they reach the game client. Assets can be replaced
-by ID, redirected to a CDN URL or a local file, removed from batch requests, and
-cached so they are only downloaded once. The rules are stored as JSON, so packs
-can be shared, imported and exported instead of written by hand.
+A local proxy between Roblox and its servers that swaps textures, audio, meshes
+and animations before they reach the game client. Assets can be replaced by ID,
+redirected to a CDN URL or a local file, removed from batch requests, and cached
+so they are only downloaded once. Rules are stored as JSON, so packs can be
+shared, imported and exported instead of written by hand.
 
 **Quickplay**
 
@@ -54,8 +59,8 @@ joining before you join it, and any game can be given a desktop shortcut.
 
 Add your accounts and switch between them from the top of the window. Your avatar
 and banner are rendered in Catstrap's own style, and the wardrobe lets you browse
-and equip items without opening a browser. Accounts are saved automatically
-unless you turn that off, and playtime is tracked per game.
+and equip items without opening a browser. Accounts save automatically unless you
+turn that off, and playtime is tracked per game.
 
 **Personalisation**
 
@@ -66,14 +71,14 @@ option strips the heavier animations out for slower machines.
 **Rendering**
 
 Texture quality, mesh detail, MSAA, the frame rate cap and the rendering mode are
-grouped in one place rather than spread across flag lists.
+grouped together instead of being spread across flag lists, with an option to pin
+Roblox to an older build when a new one misbehaves.
 
 **Tuning and privacy**
 
 A FastFlags editor with an allowlist, an editor for Roblox's global basic
-settings, and a Roblox version pinning option for rolling the client back when a
-new build misbehaves. Cache cleaner and channel switcher are here too. Analytics
-are opt-in, and Roblox's own telemetry is blocked unless you turn that off.
+settings, a cache cleaner and a channel switcher. Analytics are opt-in, and
+Roblox's own telemetry is blocked unless you turn that off.
 
 **Config packages**
 
@@ -83,10 +88,12 @@ theirs. Settings and asset rules travel, and nothing about your account does.
 **Server information**
 
 Live server details through [RoValra][rovalra]'s API, along with Discord Rich
-Presence support and Catstrap's own invite handling.
+Presence and Catstrap's own invite handling.
 
 > FastFlags outside the allowlist cannot be applied. This does not affect Roblox
 > Studio. [Learn more][devforum-fflags]
+
+</details>
 
 ## Special thanks
 
