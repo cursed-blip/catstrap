@@ -5,7 +5,7 @@
 
 <div align="center">
 
-![Catstrap][banner]
+<img src="https://github.com/cursed-blip/catstrap/raw/main/Images/Catstrap-Logo.png" width="170" alt="Catstrap">
 
 ![][badge-latest]
 ![][badge-downloads]
@@ -102,7 +102,6 @@ Presence and Catstrap's own invite handling.
 - The Bloxstrap and Fishstrap teams, for the project this is based on
 - Other independent contributors
 
-[banner]: https://github.com/cursed-blip/catstrap/raw/main/Images/Catstrap-Logo.png
 [preview]: https://github.com/cursed-blip/catstrap/raw/main/Images/Catstrap-Preview.png
 
 [repo-latest]:  https://github.com/cursed-blip/catstrap/releases/latest
