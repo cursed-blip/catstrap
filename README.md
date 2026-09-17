@@ -5,7 +5,7 @@
 
 <div align="center">
 
-<img src="https://github.com/cursed-blip/catstrap/raw/main/Images/Catstrap-Logo.png" width="170" alt="Catstrap">
+<img src="https://github.com/cursed-blip/catstrap/raw/main/Images/Catstrap-Logo.png" width="255" alt="Catstrap">
 
 ![][badge-latest]
 ![][badge-downloads]
