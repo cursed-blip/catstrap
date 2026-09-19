@@ -82,6 +82,13 @@
     Description="{x:Static resources:Strings.Menu_Bootstrapper_Cleaner_IncludeBloxstrap_Description}">
                     <ui:ToggleSwitch IsChecked="{Binding CleanerCatstrap, Mode=TwoWay}" />
                 </controls:OptionControl>
+
+                <ui:CardAction Margin="0,8,0,0" Icon="Broom24" Command="{Binding CleanNowCommand, Mode=OneTime}">
+                    <StackPanel>
+                        <TextBlock FontSize="14" Text="Clean now" />
+                        <TextBlock Margin="0,2,0,0" FontSize="12" Padding="0,0,16,0" Text="Run the cleanup straight away instead of waiting for the next launch." Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+                </ui:CardAction>
             </StackPanel>
         </ui:CardExpander>
         <TextBlock Text="Experimental" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />

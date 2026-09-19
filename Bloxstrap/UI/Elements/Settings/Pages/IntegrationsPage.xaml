@@ -41,6 +41,13 @@
             <ui:ToggleSwitch IsChecked="{Binding DisableAppPatchEnabled, Mode=TwoWay}" />
         </controls:OptionControl>
 
+        <controls:OptionControl
+            Header="Rejoin after a disconnect"
+            Description="If the game drops you because you went idle or the connection died, and Roblox is still open, hop back into the same server."
+            IsEnabled="{Binding InnerContent.IsChecked, ElementName=ActivityTrackingOption, Mode=OneWay}">
+            <ui:ToggleSwitch IsChecked="{Binding AutoRejoin, Mode=TwoWay}" />
+        </controls:OptionControl>
+
         <TextBlock Text="{x:Static resources:Strings.Common_DiscordRichPresence}" FontSize="20" FontWeight="Medium" Margin="0,16,0,0" />
         <controls:MarkdownTextBlock MarkdownText="{Binding Source={x:Static resources:Strings.Menu_Integrations_RequiresActivityTracking}, Converter={StaticResource StringFormatConverter}, ConverterParameter='https://github.com/bloxstraplabs/bloxstrap/wiki/What-is-activity-tracking%3F#discord-rich-presence'}" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 

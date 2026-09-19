@@ -79,6 +79,24 @@ namespace Bloxstrap
 
         private static bool _showingExceptionDialog = false;
 
+        static App()
+        {
+            AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+            {
+                Logger.WriteLine("App::UnhandledException", "An unhandled exception came from a background thread");
+
+                if (args.ExceptionObject is Exception exception)
+                    Logger.WriteException("App::UnhandledException", exception);
+            };
+
+            TaskScheduler.UnobservedTaskException += (_, args) =>
+            {
+                args.SetObserved();
+
+                Logger.WriteException("App::UnobservedTaskException", args.Exception);
+            };
+        }
+
         public static void Terminate(ErrorCode exitCode = ErrorCode.ERROR_SUCCESS)
         {
             int exitCodeNum = (int)exitCode;

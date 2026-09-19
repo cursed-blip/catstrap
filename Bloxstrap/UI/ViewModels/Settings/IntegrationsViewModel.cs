@@ -86,11 +86,13 @@ namespace Bloxstrap.UI.ViewModels.Settings
                     DisableAppPatchEnabled = value;
                     DiscordActivityEnabled = value;
                     DiscordActivityJoinEnabled = value;
+                    AutoRejoin = value;
 
                     OnPropertyChanged(nameof(ShowServerDetailsEnabled));
                     OnPropertyChanged(nameof(DisableAppPatchEnabled));
                     OnPropertyChanged(nameof(DiscordActivityEnabled));
                     OnPropertyChanged(nameof(DiscordActivityJoinEnabled));
+                    OnPropertyChanged(nameof(AutoRejoin));
                 }
             }
         }
@@ -141,6 +143,12 @@ namespace Bloxstrap.UI.ViewModels.Settings
         {
             get => App.Settings.Prop.UseDisableAppPatch;
             set => App.Settings.Prop.UseDisableAppPatch = value;
+        }
+
+        public bool AutoRejoin
+        {
+            get => App.Settings.Prop.AutoRejoin;
+            set => App.Settings.Prop.AutoRejoin = value;
         }
 
         public ObservableCollection<CustomIntegration> CustomIntegrations

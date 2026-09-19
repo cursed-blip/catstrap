@@ -5,6 +5,14 @@ namespace Bloxstrap
 {
     public class Watcher : IDisposable
     {
+        private const int RejoinDelaySeconds = 5;
+
+        private const int MaxRejoinAttempts = 3;
+
+        private int _rejoinAttempts;
+
+        private DateTime _lastDesktopReturn = DateTime.MinValue;
+
         private readonly InterProcessLock _lock = new("Watcher");
 
         private readonly WatcherData? _watcherData;
@@ -77,9 +85,93 @@ namespace Bloxstrap
                     App.Logger.WriteLine(LOG_IDENT, "Running rpc");
                     RichPresence = new(ActivityWatcher);
                 }
+
+                if (App.Settings.Prop.AutoRejoin)
+                {
+                    App.Logger.WriteLine(LOG_IDENT, "Watching for disconnects to rejoin the last server");
+
+                    ActivityWatcher.OnGameJoin += (_, _) => _rejoinAttempts = 0;
+                    ActivityWatcher.OnGameLeave += (_, _) => TryRejoin();
+                    ActivityWatcher.OnAppClose += (_, _) => _lastDesktopReturn = DateTime.UtcNow;
+                }
             }
 
             _notifyIcon = new(this);
+        }
+
+        private bool ClientRunning()
+        {
+            if (_watcherData is null)
+                return false;
+
+            return Utilities.GetProcessesSafe().Any(x => x.Id == _watcherData.ProcessId);
+        }
+
+        private void TryRejoin()
+        {
+            const string LOG_IDENT = "Watcher::TryRejoin";
+
+            if (_watcherData is null || ActivityWatcher is null)
+                return;
+
+            ActivityData? last = ActivityWatcher.History.FirstOrDefault();
+
+            if (last is null || last.PlaceId <= 0 || String.IsNullOrEmpty(last.JobId))
+                return;
+
+            if (!ClientRunning())
+            {
+                App.Logger.WriteLine(LOG_IDENT, "The client is closed, so there is nothing to rejoin");
+                return;
+            }
+
+            if (ActivityWatcher.InGame)
+            {
+                App.Logger.WriteLine(LOG_IDENT, "Already back in a game, so there is nothing to rejoin");
+                return;
+            }
+
+            if (DateTime.UtcNow - _lastDesktopReturn < TimeSpan.FromSeconds(10))
+            {
+                App.Logger.WriteLine(LOG_IDENT, "That looked like a deliberate exit, so not rejoining");
+                return;
+            }
+
+            if (_rejoinAttempts >= MaxRejoinAttempts)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Already tried rejoining {_rejoinAttempts} times, leaving it be");
+                return;
+            }
+
+            _rejoinAttempts += 1;
+
+            App.Logger.WriteLine(LOG_IDENT, $"Lost the connection to {last.PlaceId}, rejoining in {RejoinDelaySeconds} seconds (attempt {_rejoinAttempts})");
+
+            _ = RejoinAsync(last);
+        }
+
+        private async Task RejoinAsync(ActivityData activity)
+        {
+            const string LOG_IDENT = "Watcher::RejoinAsync";
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(RejoinDelaySeconds));
+
+                if (!ClientRunning() || ActivityWatcher is null || ActivityWatcher.InGame)
+                    return;
+
+                string path = new RobloxPlayerData().ExecutablePath;
+
+                Process.Start(path, activity.GetInviteDeeplink(false, true));
+
+                App.Logger.WriteLine(LOG_IDENT, $"Rejoined {activity.PlaceId}");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Could not rejoin {activity.PlaceId}");
+                App.Logger.WriteException(LOG_IDENT, ex);
+            }
         }
 
         public void KillRobloxProcess() => CloseProcess(_watcherData!.ProcessId, true);
@@ -120,7 +212,7 @@ namespace Bloxstrap
             ActivityWatcher?.Start();
             WindowManipulation?.Start();
 
-            while (Utilities.GetProcessesSafe().Any(x => x.Id == _watcherData.ProcessId))
+            while (ClientRunning())
                 await Task.Delay(1000);
 
             if (_watcherData.AutoclosePids is not null)

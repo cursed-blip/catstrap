@@ -1,14 +1,23 @@
-﻿namespace Bloxstrap.UI.ViewModels.Settings
+﻿using System.Windows.Input;
+
+using CommunityToolkit.Mvvm.Input;
+
+namespace Bloxstrap.UI.ViewModels.Settings
 {
     public class BehaviourViewModel : NotifyPropertyChangedViewModel
     {
+        private readonly AsyncRelayCommand _cleanNowCommand;
 
         public BehaviourViewModel()
         {
+            _cleanNowCommand = new AsyncRelayCommand(CleanNowAsync);
+
             App.Cookies.StateChanged += (object? _, CookieState state) => CookieLoadingFailed = state != CookieState.Success && state != CookieState.Unknown;
 
             Task.Run(LoadRegionsAsync);
         }
+
+        public System.Windows.Input.ICommand CleanNowCommand => _cleanNowCommand;
 
         public bool IsRobloxInstallationMissing => String.IsNullOrEmpty(App.RobloxState.Prop.Player.VersionGuid) && String.IsNullOrEmpty(App.RobloxState.Prop.Studio.VersionGuid);
 
@@ -65,6 +74,20 @@
                 _availableRegions = value;
                 OnPropertyChanged(nameof(AvailableRegions));
             }
+        }
+
+        private async Task CleanNowAsync()
+        {
+            System.Windows.MessageBoxResult result = Frontend.ShowMessageBox(
+                "Delete the Roblox logs and caches that are older than the age picked above? Anything currently in use is skipped.",
+                System.Windows.MessageBoxImage.Question,
+                System.Windows.MessageBoxButton.YesNo
+            );
+
+            if (result != System.Windows.MessageBoxResult.Yes)
+                return;
+
+            await Task.Run(Integrations.Cleaner.DoCleaning);
         }
 
         private async Task LoadRegionsAsync()

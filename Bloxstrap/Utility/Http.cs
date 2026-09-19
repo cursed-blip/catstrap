@@ -1,58 +1,50 @@
-﻿namespace Bloxstrap.Utility
+namespace Bloxstrap.Utility
 {
     internal static class Http
     {
-        /// <summary>
-        /// Gets and deserializes a JSON API response to the specified object
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="url"></param>
-        /// <exception cref="HttpRequestException"></exception>
-        /// <exception cref="JsonException"></exception>
         public static async Task<T> GetJson<T>(Uri url)
         {
-            var request = await App.HttpClient.GetAsync(url);
+            using HttpResponseMessage response = await App.HttpClient.GetAsync(url);
 
-            request.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
 
-            string json = await request.Content.ReadAsStringAsync();
-            
-            return JsonSerializer.Deserialize<T>(json)!;
+            return await ReadJson<T>(response);
         }
 
         public static async Task<T> SendJson<T>(HttpRequestMessage requestMessage)
         {
-            var request = await App.HttpClient.SendAsync(requestMessage);
+            using HttpResponseMessage response = await App.HttpClient.SendAsync(requestMessage);
 
-            request.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
 
-            string json = await request.Content.ReadAsStringAsync();
-
-            return JsonSerializer.Deserialize<T>(json)!;
+            return await ReadJson<T>(response);
         }
 
         public static async Task<T> AuthGetJson<T>(Uri url)
         {
-            var request = await App.Cookies.AuthGet(url);
+            using HttpResponseMessage response = await App.Cookies.AuthGet(url);
 
-            request.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
 
-            string json = await request.Content.ReadAsStringAsync();
-
-            return JsonSerializer.Deserialize<T>(json)!;
+            return await ReadJson<T>(response);
         }
 
         public static async Task<T> AuthSendJson<T>(HttpRequestMessage requestMessage)
         {
             HttpContent content = requestMessage.Content!;
 
-            var request = await App.Cookies.AuthPost(requestMessage.RequestUri, content);
+            using HttpResponseMessage response = await App.Cookies.AuthPost(requestMessage.RequestUri, content);
 
-            request.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
 
-            string json = await request.Content.ReadAsStringAsync();
+            return await ReadJson<T>(response);
+        }
 
-            return JsonSerializer.Deserialize<T>(json)!;
+        private static async Task<T> ReadJson<T>(HttpResponseMessage response)
+        {
+            using Stream stream = await response.Content.ReadAsStreamAsync();
+
+            return (await JsonSerializer.DeserializeAsync<T>(stream))!;
         }
     }
 }

@@ -8,6 +8,8 @@ namespace Bloxstrap
     {
         private static readonly JsonSerializerOptions WriteOptions = new() { WriteIndented = true };
 
+        private static readonly object WriteLock = new();
+
         public T OriginalProp { get; set; } = new();
 
         public T Prop { get; set; } = new();
@@ -97,7 +99,13 @@ namespace Bloxstrap
             {
                 string contents = JsonSerializer.Serialize(Prop, WriteOptions);
 
-                File.WriteAllText(FileLocation, contents);
+                lock (WriteLock)
+                {
+                    string temporary = $"{FileLocation}.tmp";
+
+                    File.WriteAllText(temporary, contents);
+                    File.Move(temporary, FileLocation, true);
+                }
 
                 LastFileHash = MD5Hash.FromString(contents);
             }
