@@ -12,6 +12,9 @@ namespace Bloxstrap.Models.APIs.RoValra
 
     public class RoValraDatacenterLocation
     {
+        [JsonPropertyName("city")]
+        public string City { get; set; } = string.Empty;
+
         [JsonPropertyName("country")]
         public string Country { get; set; } = string.Empty;
 

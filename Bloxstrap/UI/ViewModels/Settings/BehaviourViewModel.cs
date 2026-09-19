@@ -6,6 +6,8 @@
         public BehaviourViewModel()
         {
             App.Cookies.StateChanged += (object? _, CookieState state) => CookieLoadingFailed = state != CookieState.Success && state != CookieState.Unknown;
+
+            Task.Run(LoadRegionsAsync);
         }
 
         public bool IsRobloxInstallationMissing => String.IsNullOrEmpty(App.RobloxState.Prop.Player.VersionGuid) && String.IsNullOrEmpty(App.RobloxState.Prop.Studio.VersionGuid);
@@ -45,6 +47,50 @@
         {
             get => App.Settings.Prop.EnableBetterMatchmakingRandomization;
             set => App.Settings.Prop.EnableBetterMatchmakingRandomization = value;
+        }
+
+        public string SelectedRegion
+        {
+            get => App.Settings.Prop.SelectedRegion;
+            set => App.Settings.Prop.SelectedRegion = value;
+        }
+
+        private List<string> _availableRegions = new() { Integrations.MatchmakingRegions.AutoRegion };
+
+        public List<string> AvailableRegions
+        {
+            get => _availableRegions;
+            set
+            {
+                _availableRegions = value;
+                OnPropertyChanged(nameof(AvailableRegions));
+            }
+        }
+
+        private async Task LoadRegionsAsync()
+        {
+            string current = SelectedRegion;
+
+            try
+            {
+                List<string> regions = await Integrations.MatchmakingRegions.GetRegionNamesAsync();
+
+                var list = new List<string>(regions.Count + 2) { Integrations.MatchmakingRegions.AutoRegion };
+                list.AddRange(regions);
+
+                if (!String.IsNullOrWhiteSpace(current) && !list.Contains(current, StringComparer.OrdinalIgnoreCase))
+                    list.Add(current);
+
+                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                {
+                    AvailableRegions = list;
+                    OnPropertyChanged(nameof(SelectedRegion));
+                });
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteLine("BehaviourViewModel::LoadRegionsAsync", $"Failed to load regions: {ex.Message}");
+            }
         }
 
         public bool ConfirmLaunches

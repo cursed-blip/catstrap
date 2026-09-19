@@ -17,14 +17,13 @@ using Bloxstrap.UI.Elements.Controls;
 
 namespace Bloxstrap.UI.Elements.Settings
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : INavigationWindow
     {
         private Models.Persistable.WindowState _state => App.State.Prop.SettingsWindow;
 
         private static List<SearchBarItem>? _searchIndex;
+
+        private IEnumerator<NavigationItem>? _searchIndexSource;
 
         public MainWindow(bool showAlreadyRunningWarning)
         {
@@ -43,7 +42,7 @@ namespace Bloxstrap.UI.Elements.Settings
                 ShowAlreadyRunningSnackbar();
 
             gbs.Opacity = viewModel.GBSEnabled ? 1 : 0.5;
-            gbs.IsEnabled = viewModel.GBSEnabled; // binding doesnt work as expected so we are setting it in here instead
+            gbs.IsEnabled = viewModel.GBSEnabled;
 
             LoadState();
             ApplyBackgroundGif();
@@ -63,7 +62,7 @@ namespace Bloxstrap.UI.Elements.Settings
             });
 
             if (lastPage is not null && RootNavigation.Items.OfType<NavigationItem>().Any(x => x.PageType == lastPage))
-                SafeNavigate(lastPage);
+                NavigateWhenLoaded(lastPage);
             else if (lastPage is not null)
                 App.Logger.WriteLine("MainWindow", $"Last page '{lastPageName}' is no longer available, falling back to default");
 
@@ -102,7 +101,7 @@ namespace Bloxstrap.UI.Elements.Settings
         }
 
         private void Notify(string message, bool good = true) =>
-            Dispatcher.Invoke(() => NoticeSnackbar.Show(good ? "Accounts" : "Accounts", message));
+            Dispatcher.Invoke(() => NoticeSnackbar.Show("Accounts", message));
 
         private void AccountsDropDown_Click(object sender, RoutedEventArgs e)
         {
@@ -202,19 +201,30 @@ namespace Bloxstrap.UI.Elements.Settings
             }
         }
 
-        private async void SafeNavigate(Type page)
+        private void NavigateWhenLoaded(Type page)
         {
-            await Task.Delay(500); // same as below
+            if (IsLoaded)
+            {
+                Navigate(page);
+                return;
+            }
 
-            if (page == typeof(GlobalSettingsPage) && !App.GlobalSettings.Loaded)
-                return; // prevent from navigating onto disabled page
+            void OnLoaded(object? sender, RoutedEventArgs args)
+            {
+                Loaded -= OnLoaded;
 
-            Navigate(page);
+                if (page == typeof(GlobalSettingsPage) && !App.GlobalSettings.Loaded)
+                    return;
+
+                Navigate(page);
+            }
+
+            Loaded += OnLoaded;
         }
 
         private async void ShowAlreadyRunningSnackbar()
         {
-            await Task.Delay(500); // wait for everything to finish loading
+            await Task.Delay(500);
             AlreadyRunningSnackbar.Show();
         }
 
@@ -263,40 +273,46 @@ namespace Bloxstrap.UI.Elements.Settings
 
         private void EnsureSearchIndex()
         {
-            if (_searchIndex is not null)
+            if (_searchIndex is not null || _searchIndexSource is not null)
                 return;
 
-            BuildSearchIndexAutomatically();
+            _searchIndex = new List<SearchBarItem>();
+            _searchIndexSource = RootNavigation.Items.OfType<NavigationItem>().Where(x => x.PageType is not null).GetEnumerator();
+
+            Dispatcher.InvokeAsync(BuildSearchIndexStep, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 
-        private void BuildSearchIndexAutomatically()
+        private void BuildSearchIndexStep()
         {
-            _searchIndex = new List<SearchBarItem>();
+            if (_searchIndexSource is null || _searchIndex is null)
+                return;
 
-            var navItems = RootNavigation.Items.OfType<NavigationItem>();
-
-            foreach (var item in navItems)
+            if (!_searchIndexSource.MoveNext())
             {
-                if (item.PageType == null)
-                    continue;
+                _searchIndexSource.Dispose();
+                _searchIndexSource = null;
+                return;
+            }
 
-                if (Activator.CreateInstance(item.PageType) is Page pageInstance)
+            NavigationItem item = _searchIndexSource.Current;
+
+            if (Activator.CreateInstance(item.PageType) is Page pageInstance)
+            {
+                foreach (OptionControl optionControl in FindLogicalChildren<OptionControl>(pageInstance))
                 {
-                    var optionControls = FindLogicalChildren<OptionControl>(pageInstance);
-
-                    foreach (var optionControl in optionControls)
+                    if (optionControl.Header is string headerText && !String.IsNullOrWhiteSpace(headerText))
                     {
-                        if (optionControl.Header is string headerText && !string.IsNullOrWhiteSpace(headerText))
+                        _searchIndex.Add(new SearchBarItem
                         {
-                            _searchIndex.Add(new SearchBarItem
-                            {
-                                DisplayName = headerText,
-                                PageType = item.PageType
-                            });
-                        }
+                            DisplayName = headerText,
+                            SearchKey = headerText.ToLowerInvariant(),
+                            PageType = item.PageType
+                        });
                     }
                 }
             }
+
+            Dispatcher.InvokeAsync(BuildSearchIndexStep, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
 
         private static IEnumerable<T> FindLogicalChildren<T>(DependencyObject depObj) where T : DependencyObject
@@ -321,14 +337,13 @@ namespace Bloxstrap.UI.Elements.Settings
             }
         }
 
-        // should move to viewmodels but uhhh im kinda lazy
         private void AutoSuggestBoxTextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is AutoSuggestBox autoSuggestBox)
             {
-                var currentText = autoSuggestBox.Text;
+                string currentText = autoSuggestBox.Text;
 
-                if (string.IsNullOrWhiteSpace(currentText))
+                if (String.IsNullOrWhiteSpace(currentText))
                 {
                     autoSuggestBox.ItemsSource = null;
                     return;
@@ -336,7 +351,7 @@ namespace Bloxstrap.UI.Elements.Settings
 
                 EnsureSearchIndex();
 
-                var selectedSetting = _searchIndex?.FirstOrDefault(x => x.DisplayName.Equals(currentText, StringComparison.OrdinalIgnoreCase));
+                SearchBarItem? selectedSetting = _searchIndex?.FirstOrDefault(x => x.SearchKey.Equals(currentText.Trim(), StringComparison.Ordinal));
 
                 if (selectedSetting is not null)
                 {
@@ -344,9 +359,11 @@ namespace Bloxstrap.UI.Elements.Settings
                     return;
                 }
 
-                var query = currentText.ToLower();
+                string query = currentText.Trim().ToLowerInvariant();
+
                 autoSuggestBox.ItemsSource = _searchIndex?
-                    .Where(x => x.DisplayName.ToLower().Contains(query))
+                    .Where(x => x.SearchKey.Contains(query, StringComparison.Ordinal))
+                    .Take(25)
                     .Select(x => x.DisplayName)
                     .ToList();
             }

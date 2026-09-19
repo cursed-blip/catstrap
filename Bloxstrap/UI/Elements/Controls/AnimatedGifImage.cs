@@ -16,6 +16,8 @@ namespace Bloxstrap.UI.Elements.Controls
 
         private const int MaxSourceFrames = 240;
 
+        private const int MaxDecodedBytes = 72 * 1024 * 1024;
+
         public static readonly DependencyProperty SourceProperty = DependencyProperty.Register(
             nameof(Source),
             typeof(string),
@@ -233,11 +235,26 @@ namespace Bloxstrap.UI.Elements.Controls
             if (width <= 0 || height <= 0)
                 return frames;
 
-            byte[] canvas = new byte[width * height * 4];
-            byte[]? restore = null;
-
-            int count = Math.Min(decoder.Frames.Count, MaxSourceFrames);
             double scale = Math.Min(1d, (double)MaxSourceWidth / width);
+
+            int targetWidth = scale >= 0.999 ? width : Math.Max(1, (int)Math.Round(width * scale));
+            int targetHeight = scale >= 0.999 ? height : Math.Max(1, (int)Math.Round(height * scale));
+
+            int frameBudget = Math.Max(1, MaxDecodedBytes / (targetWidth * targetHeight * 4));
+            int count = Math.Min(decoder.Frames.Count, Math.Min(MaxSourceFrames, frameBudget));
+
+            byte[] canvas = new byte[width * height * 4];
+            byte[] restore = new byte[canvas.Length];
+            byte[] scratch = Array.Empty<byte>();
+            byte[] scaled = Array.Empty<byte>();
+
+            WriteableBitmap? full = null;
+
+            if (targetWidth != width)
+            {
+                full = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+                scaled = new byte[targetWidth * targetHeight * 4];
+            }
 
             int previousDisposal = 0, previousLeft = 0, previousTop = 0, previousWidth = 0, previousHeight = 0;
 
@@ -257,11 +274,11 @@ namespace Bloxstrap.UI.Elements.Controls
                 int delay = ReadInt(metadata, "/grctlext/Delay", 10) * 10;
 
                 if (disposal == 3)
-                    restore = (byte[])canvas.Clone();
+                    Array.Copy(canvas, restore, canvas.Length);
 
-                Blit(canvas, width, height, frame, left, top, frameWidth, frameHeight);
+                Blit(canvas, width, height, frame, left, top, frameWidth, frameHeight, ref scratch);
 
-                frames.Add(new GifFrame(Store(canvas, width, height, scale), Math.Clamp(delay, 20, 1000)));
+                frames.Add(new GifFrame(Store(canvas, width, height, targetWidth, targetHeight, full, scaled), Math.Clamp(delay, 20, 1000)));
 
                 previousDisposal = disposal;
                 previousLeft = left;
@@ -273,7 +290,7 @@ namespace Bloxstrap.UI.Elements.Controls
             return frames;
         }
 
-        private static void ApplyDisposal(byte[] canvas, int width, int height, int disposal, int left, int top, int frameWidth, int frameHeight, byte[]? restore)
+        private static void ApplyDisposal(byte[] canvas, int width, int height, int disposal, int left, int top, int frameWidth, int frameHeight, byte[] restore)
         {
             if (disposal == 2)
             {
@@ -290,50 +307,56 @@ namespace Bloxstrap.UI.Elements.Controls
                     }
                 }
             }
-            else if (disposal == 3 && restore is not null)
+            else if (disposal == 3)
             {
                 Array.Copy(restore, canvas, canvas.Length);
             }
         }
 
-        private static void Blit(byte[] canvas, int width, int height, BitmapFrame frame, int left, int top, int frameWidth, int frameHeight)
+        private static void Blit(byte[] canvas, int width, int height, BitmapFrame frame, int left, int top, int frameWidth, int frameHeight, ref byte[] scratch)
         {
-            var converted = new FormatConvertedBitmap(frame, PixelFormats.Bgra32, null, 0);
-
-            int sourceWidth = converted.PixelWidth;
-            int sourceHeight = converted.PixelHeight;
+            int sourceWidth = frame.PixelWidth;
+            int sourceHeight = frame.PixelHeight;
 
             if (sourceWidth <= 0 || sourceHeight <= 0)
                 return;
 
             int stride = sourceWidth * 4;
-            byte[] source = new byte[stride * sourceHeight];
+            int required = stride * sourceHeight;
 
+            byte[] source = scratch;
+
+            if (source.Length < required)
+            {
+                source = new byte[required];
+                scratch = source;
+            }
+
+            var converted = new FormatConvertedBitmap(frame, PixelFormats.Bgra32, null, 0);
             converted.CopyPixels(source, stride, 0);
 
             int copyWidth = Math.Min(frameWidth, sourceWidth);
             int copyHeight = Math.Min(frameHeight, sourceHeight);
 
-            for (int y = 0; y < copyHeight; y++)
+            int destinationLeft = Math.Max(0, left);
+            int destinationTop = Math.Max(0, top);
+            int destinationRight = Math.Min(width, left + copyWidth);
+            int destinationBottom = Math.Min(height, top + copyHeight);
+
+            if (destinationRight <= destinationLeft || destinationBottom <= destinationTop)
+                return;
+
+            int startX = destinationLeft - left;
+
+            for (int y = destinationTop; y < destinationBottom; y++)
             {
-                int destinationY = top + y;
+                int from = (y - top) * stride + startX * 4;
+                int to = (y * width + destinationLeft) * 4;
 
-                if (destinationY < 0 || destinationY >= height)
-                    continue;
-
-                for (int x = 0; x < copyWidth; x++)
+                for (int x = destinationLeft; x < destinationRight; x++, from += 4, to += 4)
                 {
-                    int destinationX = left + x;
-
-                    if (destinationX < 0 || destinationX >= width)
-                        continue;
-
-                    int from = y * stride + x * 4;
-
                     if (source[from + 3] == 0)
                         continue;
-
-                    int to = (destinationY * width + destinationX) * 4;
 
                     canvas[to] = source[from];
                     canvas[to + 1] = source[from + 1];
@@ -343,23 +366,25 @@ namespace Bloxstrap.UI.Elements.Controls
             }
         }
 
-        private static BitmapSource Store(byte[] canvas, int width, int height, double scale)
+        private static BitmapSource Store(byte[] canvas, int width, int height, int targetWidth, int targetHeight, WriteableBitmap? full, byte[] scaled)
         {
-            var full = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgra32, null);
+            if (full is null || (targetWidth == width && targetHeight == height))
+                return CreateFreeze(canvas, width, height);
+
             full.WritePixels(new Int32Rect(0, 0, width, height), canvas, width * 4, 0);
-            full.Freeze();
 
-            if (scale >= 0.999)
-                return full;
+            var transformed = new TransformedBitmap(full, new ScaleTransform((double)targetWidth / width, (double)targetHeight / height));
+            transformed.CopyPixels(scaled, targetWidth * 4, 0);
 
-            int targetWidth = Math.Max(1, (int)Math.Round(width * scale));
-            int targetHeight = Math.Max(1, (int)Math.Round(height * scale));
+            return CreateFreeze(scaled, targetWidth, targetHeight);
+        }
 
-            var resized = new WriteableBitmap(new TransformedBitmap(full, new ScaleTransform(scale, scale)));
+        private static BitmapSource CreateFreeze(byte[] pixels, int width, int height)
+        {
+            var image = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
+            image.Freeze();
 
-            resized.Freeze();
-
-            return resized;
+            return image;
         }
 
         private static int ReadInt(BitmapMetadata? metadata, string query, int fallback)

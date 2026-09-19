@@ -133,7 +133,11 @@ namespace Bloxstrap.UI.ViewModels.Settings
             }
         }
 
+        private const int ImageConcurrency = 8;
+
         private readonly Dictionary<long, ImageSource> _images = new();
+
+        private readonly object _imageLock = new();
 
         private long _userId;
 
@@ -454,7 +458,10 @@ namespace Bloxstrap.UI.ViewModels.Settings
 
         private async Task LoadThumbnailsAsync(List<WardrobeItem> items)
         {
-            var missing = items.Where(x => x.Thumbnail is null && !_images.ContainsKey(x.AssetId)).ToList();
+            List<WardrobeItem> missing;
+
+            lock (_imageLock)
+                missing = items.Where(x => x.Thumbnail is null && !_images.ContainsKey(x.AssetId)).ToList();
 
             if (missing.Count == 0)
             {
@@ -481,25 +488,17 @@ namespace Bloxstrap.UI.ViewModels.Settings
                         urls[entry.Key] = entry.Value;
                 }
 
+                using var gate = new SemaphoreSlim(ImageConcurrency);
+
+                var downloads = new List<Task>(missing.Count);
+
                 foreach (WardrobeItem item in missing)
                 {
-                    if (!urls.TryGetValue(item.AssetId, out string? url))
-                        continue;
-
-                    try
-                    {
-                        byte[] bytes = await App.HttpClient.GetByteArrayAsync(url);
-
-                        ImageSource? image = Decode(bytes);
-
-                        if (image is not null)
-                            _images[item.AssetId] = image;
-                    }
-                    catch (Exception ex)
-                    {
-                        App.Logger.WriteLine(LOG_IDENT, $"No picture for {item.AssetId}: {ex.Message}");
-                    }
+                    if (urls.TryGetValue(item.AssetId, out string? url))
+                        downloads.Add(FetchThumbnailAsync(item.AssetId, url, gate));
                 }
+
+                await Task.WhenAll(downloads);
             }
             catch (Exception ex)
             {
@@ -510,12 +509,45 @@ namespace Bloxstrap.UI.ViewModels.Settings
             Apply(items);
         }
 
+        private async Task FetchThumbnailAsync(long assetId, string url, SemaphoreSlim gate)
+        {
+            await gate.WaitAsync();
+
+            try
+            {
+                byte[] bytes = await App.HttpClient.GetByteArrayAsync(url);
+
+                ImageSource? image = await Task.Run(() => Decode(bytes));
+
+                if (image is null)
+                    return;
+
+                lock (_imageLock)
+                    _images[assetId] = image;
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"No picture for {assetId}: {ex.Message}");
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
+
         private void Apply(List<WardrobeItem> items)
         {
             foreach (WardrobeItem item in items)
             {
-                if (_images.TryGetValue(item.AssetId, out ImageSource? image))
-                    item.Thumbnail = image;
+                ImageSource? image;
+
+                lock (_imageLock)
+                {
+                    if (!_images.TryGetValue(item.AssetId, out image))
+                        continue;
+                }
+
+                item.Thumbnail = image;
             }
         }
 

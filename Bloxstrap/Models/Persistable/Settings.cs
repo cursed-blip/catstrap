@@ -39,6 +39,7 @@ namespace Bloxstrap.Models.Persistable
         public bool DebugDisableVersionPackageCleanup { get; set; } = false;
         public bool EnableBetterMatchmaking { get; set; } = false;
         public bool EnableBetterMatchmakingRandomization { get; set; } = false;
+        public string SelectedRegion { get; set; } = "Auto";
         public WebEnvironment WebEnvironment { get; set; } = WebEnvironment.Production;
 
         // integration configuration

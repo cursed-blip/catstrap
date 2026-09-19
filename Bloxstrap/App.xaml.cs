@@ -47,8 +47,6 @@ namespace Bloxstrap
 
         public static bool IsStudioVisible => !String.IsNullOrEmpty(App.RobloxState.Prop.Studio.VersionGuid);
 
-        public static readonly MD5 MD5Provider = MD5.Create();
-
         public static readonly Logger Logger = new();
 
         public static readonly Dictionary<string, BaseTask> PendingSettingTasks = new();
@@ -87,6 +85,8 @@ namespace Bloxstrap
 
             Logger.WriteLine("App::Terminate", $"Terminating with exit code {exitCodeNum} ({exitCode})");
 
+            Logger.Shutdown();
+
             Environment.Exit(exitCodeNum);
         }
 
@@ -102,6 +102,8 @@ namespace Bloxstrap
         protected override void OnExit(ExitEventArgs e)
         {
             Bloxstrap.Integrations.AssetProxy.AssetProxyManager.Stop();
+
+            Logger.Shutdown();
 
             base.OnExit(e);
         }

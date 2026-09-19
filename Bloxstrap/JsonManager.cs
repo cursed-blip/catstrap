@@ -6,6 +6,8 @@ namespace Bloxstrap
 {
     public class JsonManager<T> where T : class, new()
     {
+        private static readonly JsonSerializerOptions WriteOptions = new() { WriteIndented = true };
+
         public T OriginalProp { get; set; } = new();
 
         public T Prop { get; set; } = new();
@@ -93,7 +95,7 @@ namespace Bloxstrap
 
             try
             {
-                string contents = JsonSerializer.Serialize(Prop, new JsonSerializerOptions { WriteIndented = true });
+                string contents = JsonSerializer.Serialize(Prop, WriteOptions);
 
                 File.WriteAllText(FileLocation, contents);
 

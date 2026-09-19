@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Security.Cryptography;
+using System.Windows;
 
 using Bloxstrap.Models.SettingTasks.Base;
 
@@ -14,7 +15,7 @@ namespace Bloxstrap.Models.SettingTasks
                 return null;
 
             using var fileStream = File.OpenRead(_filePath);
-            string hash = MD5Hash.Stringify(App.MD5Provider.ComputeHash(fileStream));
+            string hash = MD5Hash.FromStream(fileStream);
 
             return EmojiTypeEx.Hashes.Where(x => x.Value == hash);
         }

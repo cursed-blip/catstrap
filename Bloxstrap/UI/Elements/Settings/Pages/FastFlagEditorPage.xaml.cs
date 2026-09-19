@@ -42,7 +42,7 @@ namespace Bloxstrap.UI.Elements.Settings.Pages
                 if (!_showPresets && presetFlags.Contains(pair.Key))
                     continue;
 
-                if (!pair.Key.ToLower().Contains(_searchFilter.ToLower()))
+                if (!pair.Key.Contains(_searchFilter, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 var entry = new FastFlag
@@ -112,7 +112,7 @@ namespace Bloxstrap.UI.Elements.Settings.Pages
                     Value = value
                 };
 
-                if (!name.Contains(_searchFilter))
+                if (!name.Contains(_searchFilter, StringComparison.OrdinalIgnoreCase))
                     ClearSearch();
 
                 _fastFlagList.Add(entry);
@@ -132,7 +132,7 @@ namespace Bloxstrap.UI.Elements.Settings.Pages
                     refresh = true;
                 }
 
-                if (!name.Contains(_searchFilter))
+                if (!name.Contains(_searchFilter, StringComparison.OrdinalIgnoreCase))
                 {
                     ClearSearch(false);
                     refresh = true;
@@ -276,7 +276,7 @@ namespace Bloxstrap.UI.Elements.Settings.Pages
                     App.FastFlags.SetValue(oldName, null);
                     App.FastFlags.SetValue(newName, entry.Value);
 
-                    if (!newName.Contains(_searchFilter))
+                    if (!newName.Contains(_searchFilter, StringComparison.OrdinalIgnoreCase))
                         ClearSearch();
 
                     entry.Name = newName;

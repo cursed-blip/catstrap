@@ -23,7 +23,7 @@ namespace Bloxstrap.Models.Entities
             ResourceIdentifier = resource;
 
             using var stream = ResourceStream;
-            ResourceHash = App.MD5Provider.ComputeHash(stream);
+            ResourceHash = MD5Hash.Compute(stream);
         }
 
         public bool HashMatches()
@@ -32,7 +32,7 @@ namespace Bloxstrap.Models.Entities
                 return false;
 
             using var fileStream = FileStream;
-            var fileHash = App.MD5Provider.ComputeHash(fileStream);
+            byte[] fileHash = MD5Hash.Compute(fileStream);
 
             return fileHash.SequenceEqual(ResourceHash);
         }

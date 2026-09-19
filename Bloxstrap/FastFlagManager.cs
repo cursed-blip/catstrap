@@ -171,7 +171,7 @@ namespace Bloxstrap
             return mapping.First().Key;
         }
 
-        public bool IsPreset(string Flag) => PresetFlags.Values.Any(v => v.ToLower() == Flag.ToLower());
+        public bool IsPreset(string Flag) => PresetFlags.Values.Any(v => v.Equals(Flag, StringComparison.OrdinalIgnoreCase));
 
         public override void Save()
         {

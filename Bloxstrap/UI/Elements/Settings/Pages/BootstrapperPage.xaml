@@ -124,6 +124,12 @@
             </StackPanel>
         </controls:OptionControl>
 
+        <controls:OptionControl
+            Header="Matchmaking region"
+            Description="Pick which region better matchmaking tries first. Auto works out the closest regions for you. Applies on your next join.">
+            <ComboBox Width="200" Padding="10,5,10,5" ItemsSource="{Binding AvailableRegions, Mode=OneWay}" SelectedItem="{Binding SelectedRegion, Mode=TwoWay}" />
+        </controls:OptionControl>
+
         <TextBlock TextWrapping="Wrap" Margin="0,8,0,0" Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                    Text="Heads up: better matchmaking has to work out roughly where you are, so joining a game with it on asks ipinfo.io and RoValra's public API. Nothing else about you is sent, and it stays fully off unless you turn it on here." />
     </StackPanel>

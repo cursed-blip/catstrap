@@ -17,6 +17,10 @@ namespace Bloxstrap.Integrations
 
         private const int PlaytimeTickSeconds = 60;
 
+        private const int MaxParallelRefreshes = 5;
+
+        private const int IconDecodeWidth = 256;
+
         public static event EventHandler? Changed;
 
         public static ObservableCollection<QuickplayGame> Games => App.Settings.Prop.QuickplayGames;
@@ -132,10 +136,27 @@ namespace Bloxstrap.Integrations
 
         public static async Task RefreshAllAsync()
         {
-            foreach (QuickplayGame game in Games.ToList())
-                await RefreshDetailsAsync(game);
+            List<QuickplayGame> games = Games.ToList();
+
+            using var gate = new SemaphoreSlim(MaxParallelRefreshes);
+
+            await Task.WhenAll(games.Select(game => RunAsync(gate, game)));
 
             RaiseChanged();
+        }
+
+        private static async Task RunAsync(SemaphoreSlim gate, QuickplayGame game)
+        {
+            await gate.WaitAsync();
+
+            try
+            {
+                await RefreshDetailsAsync(game);
+            }
+            finally
+            {
+                gate.Release();
+            }
         }
 
         public static async Task PrefetchAsync()
@@ -151,8 +172,8 @@ namespace Bloxstrap.Integrations
             PruneThumbnailCache();
             ApplyPlaytime();
 
-            foreach (QuickplayGame game in pending)
-                await RefreshDetailsAsync(game);
+            using (var gate = new SemaphoreSlim(MaxParallelRefreshes))
+                await Task.WhenAll(pending.Select(game => RunAsync(gate, game)));
 
             if (App.Settings.Prop.ShowLivePlayerCounts)
                 SetLiveCounts(await FetchLiveCountsAsync(Games.Where(x => x.UniverseId > 0).Select(x => x.UniverseId)));
@@ -573,6 +594,8 @@ namespace Bloxstrap.Integrations
             {
                 bitmap.BeginInit();
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreColorProfile;
+                bitmap.DecodePixelWidth = IconDecodeWidth;
                 bitmap.StreamSource = stream;
                 bitmap.EndInit();
             }

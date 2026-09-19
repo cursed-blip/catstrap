@@ -12,6 +12,7 @@
 #endif
 
 using Bloxstrap.AppData;
+using Bloxstrap.Integrations;
 using Bloxstrap.Integrations.AssetProxy;
 using Bloxstrap.Models.APIs;
 using Bloxstrap.Models.APIs.RoValra;
@@ -658,14 +659,13 @@ namespace Bloxstrap
         {
             const string LOG_IDENT = "Bootstrapper::GetBetterMatchmakingServerID";
             Uri ipinfoUrl = new("https://ipinfo.io/json");
-            Uri roValraDatacentersUrl = new("https://apis.rovalra.com/v1/datacenters/list");
 
             var ipinfo = await Http.GetJson<IPInfoResponse>(ipinfoUrl);
 
             if (string.IsNullOrEmpty(ipinfo.Country))
                 throw new HttpRequestException("Country is blank.");
 
-            var datacenters = await Http.GetJson<List<RoValraDatacenter>>(roValraDatacentersUrl);
+            List<RoValraDatacenter> datacenters = await MatchmakingRegions.GetDatacentersAsync();
 
             if (datacenters == null || !datacenters.Any())
                 throw new HttpRequestException("No datacenters in response.");
@@ -686,16 +686,48 @@ namespace Bloxstrap
                 regions.Insert(0, ipinfo.Country);
             }
 
+            string selectedRegion = App.Settings.Prop.SelectedRegion;
+
+            if (!MatchmakingRegions.IsAuto(selectedRegion) && MatchmakingRegions.TryParseRegion(selectedRegion, out string? selectedCity, out string? selectedCountry) && !String.IsNullOrWhiteSpace(selectedCountry))
+            {
+                foreach (Uri serverApi in MatchmakingRegions.BuildServerUrls(_joinData.PlaceId, selectedCity, selectedCountry))
+                {
+                    string? selectedServerId = await TryGetServerFromApi(serverApi);
+
+                    if (!String.IsNullOrEmpty(selectedServerId))
+                        return selectedServerId;
+                }
+
+                App.Logger.WriteLine(LOG_IDENT, $"No servers available in selected region {selectedRegion}. Falling back to the next closest...");
+            }
+
             foreach (var region in regions)
             {
                 Uri roValraServersApi = new($"https://apis.rovalra.com/v1/servers/region?place_id={_joinData.PlaceId}&region={region}");
-                App.Logger.WriteLine(LOG_IDENT, $"Checking for servers in user region");
 
-                var valraResponse = await Http.GetJson<RoValraServers>(roValraServersApi);
+                string? serverId = await TryGetServerFromApi(roValraServersApi);
+
+                if (!String.IsNullOrEmpty(serverId))
+                    return serverId;
+
+                App.Logger.WriteLine(LOG_IDENT, $"No servers available in user region. Falling back to the next closest...");
+            }
+
+            return "";
+        }
+
+        private async Task<string?> TryGetServerFromApi(Uri serversApi)
+        {
+            const string LOG_IDENT = "Bootstrapper::GetBetterMatchmakingServerID";
+
+            App.Logger.WriteLine(LOG_IDENT, $"Checking for servers in user region");
+
+            try
+            {
+                var valraResponse = await Http.GetJson<RoValraServers>(serversApi);
 
                 if (valraResponse?.Servers != null && valraResponse.Servers.Count > 0 && valraResponse.Servers[0].ServerId != null)
                 {
-
                     if (App.Settings.Prop.EnableBetterMatchmakingRandomization)
                     {
                         int index = Random.Shared.Next(0, valraResponse.Servers.Count);
@@ -704,11 +736,13 @@ namespace Bloxstrap
 
                     return valraResponse.Servers[0].ServerId;
                 }
-
-                App.Logger.WriteLine(LOG_IDENT, $"No servers available in user region. Falling back to the next closest...");
+            }
+            catch (Exception ex)
+            {
+                App.Logger.WriteLine(LOG_IDENT, $"Region lookup failed: {ex.Message}");
             }
 
-            return "";
+            return null;
         }
 
         private async Task StartRoblox()
